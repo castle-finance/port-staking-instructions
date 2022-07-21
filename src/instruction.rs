@@ -228,8 +228,8 @@ pub fn claim_reward(
     staking_pool: Pubkey,
     reward_token_pool: Pubkey,
     reward_destination: Pubkey,
-    sub_reward_pool: Pubkey,
-    sub_reward_dest: Pubkey,
+    sub_reward_pool: Option<Pubkey>,
+    sub_reward_dest: Option<Pubkey>,
 ) -> Instruction {
     let (staking_program_derived, _bump_seed) =
         Pubkey::find_program_address(&[staking_pool.as_ref()], &program_id);
@@ -247,7 +247,10 @@ pub fn claim_reward(
         spl_token::id(),
     ]);
 
-    let sub_reward_accounts = create_write_accounts(vec![sub_reward_pool, sub_reward_dest]);
+    let sub_reward_accounts = create_write_accounts(match [sub_reward_pool, sub_reward_dest] {
+        [Some(pool), Some(dest)] => vec![pool, dest],
+        _ => vec![],
+    });
 
     let accounts = vec![AccountMeta::new_readonly(stake_account_owner, true)]
         .into_iter()
